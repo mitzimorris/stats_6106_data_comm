@@ -1,0 +1,245 @@
+---
+title: Know Your Data / Know Your Tools
+subtitle: STAT 6106, Communicating Data and Statistics
+author: Mitzi Morris
+institute: Stan Development Team
+date: Sept 11, 2023
+format:
+  beamer:
+    aspectratio: 169
+    pdf-engine: pdflatex
+    theme: metropolis
+    include-in-header: preamble.tex
+    navigation: horizontal
+    dev: png 
+---
+
+
+# Preamble: Bayesian Workflow (elements of)
+\vspace{-0.15in}
+
+### Workflow is how you build a good model of the data.
+\vspace{0.15in}
+
+* Exploratory data analysis / Data elicitation
+* Model specification
+* Model checking (simulated data)
+  + Recover parameters, check prior predictive distribution, check calibrarion
+* Model checking (simulated or observed data)
+  + Check sample diagnostics, run posterior predictive checks
+* Model comparison
+  + Leave-one out cross-validation (LOO)
+
+# Preamble: Workflow in Context
+\vspace{-0.1in}
+
+### Your context determines what your communicate.
+\vspace{0.15in}
+
+\tightlist
+* Research priorities: innovation, pedagogy
+  + Workflow is a blueprint for papers and lesson plans \vspace{0.5\baselineskip}
+* Applied concerns: accuracy, efficiency, generalizability
+  + Workflow provides a principled choice between available models  \vspace{0.5\baselineskip}
+* Challenge: building tools to automate workflow
+  * Model choice
+  * Model checking
+  * \textbf{\textit{Generating visualizations}}
+
+# Challenges of Computing with Data
+
+How much information is in your data?
+
+  + how many items? \textbf{\textit{for N items, only $\sqrt{N}$ digits of accuracy}}
+  + what is the resolution of the measurements?  censored or truncated?
+
+\begin{center}
+\includegraphics[width=0.65\linewidth]{img/iris_raw_data.png}
+\end{center}
+
+# Challenges of Computing with Data
+
+### Floating-Point Standard: IEEE 754
+
+\begin{itemize}
+\item \myemph{Finite numbers} ($s$: sign; $c$: mantissa; $q$: exponent)
+{\large
+\[
+x = (-1)^s \times c \times 2^q
+\]
+}
+\begin{center}
+\begin{tabular}{r|c|c|cc}
+{\slshape size} & $s, c$ {\slshape bits} & $q$ {\slshape bits}
+& {\slshape range} & {\slshape precision}
+\\ \hline
+{\slshape 32-bit} & 24 & 8
+& $\pm 3.4 \times 10^{38}$ & 7.2 digits
+\\[4pt]
+{\slshape 64-bit} & 53 & 11
+& $\pm 1.8 \times 10^{308}$ & 16 digits
+\end{tabular}
+\end{center}
+\item Quiet and signaling \myemph{not-a-number} (NaN)
+\item Positive and negative \myemph{infinity} ($+\infty, -\infty$)
+\end{itemize}
+
+# Challenges of Computing with Data
+
+### Gaps Between Floating Point Numbers
+
+* Smallest number greater than zero
+  + single precision:  $1.4 \times 10^{-45}$
+  + double precision: $4.9 \times 10^{-324}$
+
+* Largest number less than one
+  + single precision: $1 - 10^{-7.2}$
+  + double precision: $1 - 10^{-16}$
+
+* Gap size \textbf{\textit{depends on scale}}
+
+  + Probabilities range from 0 - 1
+  + The closer to zero, the more resolution
+
+# Challenges of Computing with Data
+
+### Catastrophic Cancellation
+
+- Subtraction risks \myemph{catastrophic cancellation}
+- Consider $0.99802 - 0.99801 = 0.00001$
+   + input has five digits of precision
+   + output has single digit of precision
+
+E.g., problem for sample variance of sequence $x$
+
+$${var}(x) = \frac{1}{N - 1} \, {\sum}_{n = 1}^N {(x_n - \overline{x})}^2$$
+
+\textit{what happens to variance when all observations are close to the mean?}
+
+# Challenges of Computing with Data
+\vspace{-0.15in}
+
+### Takaway
+\vspace{0.15in}
+
+* Understand computational pitfalls in order to detect/avoid them.
+
+* \href{https://mc-stan.org/docs/stan-users-guide/index.html}{Stan User's Guide}
+  + See \textit{Part 2. Programming Techniques}
+
+* \href{https://bob-carpenter.github.io/stan-getting-started/stan-getting-started.html}{Getting Started with Bayesian Statistics}
+  + See chapter \textit{Making Stan Programs Go Faster}
+
+
+# Algebra for Data Science
+\vspace{-0.15in}
+
+### Algebra
+
+- sets, cartesian products
+- graphs
+
+\vspace{0.15in}
+
+### Data
+
+- Tabular data
+- Structured data (XML, JSON, binary formats)
+
+
+# Processing Tabular Data
+\vspace{-0.15in}
+
+Background Reading:  \href{https://observablehq.com/@observablehq/data-wrangling-translations}{Data wrangling essentials}
+\vspace{0.15in}
+
+\begin{center}
+\includegraphics[width=0.95\linewidth]{img/tabular_data.png}
+\end{center}
+
+
+# Processing Structured Data
+\vspace{0.1in}
+
+
+\begin{columns}
+\column{0.2\linewidth}
+\begin{flushright}
+\includegraphics[width=0.9\linewidth]{img/filter_rows.png}
+\end{flushright}
+\column{0.8\textwidth}
+Filtering rows in a table - same table structure, just fewer rows.
+\end{columns}
+
+\vspace{0.1in}
+
+\begin{columns}
+\column{0.2\linewidth}
+\begin{flushright}
+\includegraphics[width=0.9\linewidth]{img/join.png}
+\end{flushright}
+\column{0.8\textwidth}
+Joining two tables - many kinds of joins.
+\end{columns}
+
+\vspace{0.1in}
+
+\begin{columns}
+\column{0.2\linewidth}
+\begin{flushright}
+\includegraphics[width=0.9\linewidth]{img/group.png}
+\end{flushright}
+\column{0.8\textwidth}
+Grouping or aggregating information.  Many ways to count.
+\end{columns}
+
+
+
+
+# Data Visualizations
+
+Background Reading:
+\href{https://towardsdatascience.com/a-comprehensive-guide-to-the-grammar-of-graphics-for-effective-visualization-of-multi-dimensional-1f92b4ed4149}{Guide to the Grammar of Graphics}
+
+\includegraphics[width=0.9\linewidth]{img/gg_components.png}
+
+# Grammar of Graphics:  ggplot2 and plotnine
+
+A grammar of graphics defines a plot in terms of:
+
+\tightlist
+* A dataset in the form of an R or pandas.DataFrame.
+* A set of mappings from dataset variables to graph elements called "aesthetics".
+* A coordinate system, default Cartesian, x,y axes, where x is on the horizontal and y is on the vertical axis.
+* A facet specification based on a categorical variable which results in per-category subplots, default None.
+* One or more layers, each layer takes as arguments:
+  + a dataset and aesthetic mapping - by default, the plot dataset and mappings are used
+  + one geometric object ("geoms")
+  + one statistical transformation ("stats"), default "identity"
+  + one position adjustment, default "identity"
+
+
+
+#  Map-making
+
+* If your data has significant geographic structure, show it!
+
+* Both ggplot2 and plotnine can draw beautiful maps
+
+* \textbf{\textit{BUT!}} this requires getting the maps from
+a \href {https://www.usgs.gov/faqs/what-geographic-information-system-gis}{Geographic Information System}(GIS)
+
+* Let's do it!  Jupyter notebook:  \href{https://github.com/mitzimorris/ljubljiana_lecture/blob/main/data_prep_spatial_maps.ipynb}{Map-making with Plotnine}
+
+
+# References
+
+
+* \href{https://mc-stan.org/docs/stan-users-guide/index.html}{Stan User's Guide}
+* \href{https://bob-carpenter.github.io/stan-getting-started/stan-getting-started.html}{Getting Started with Bayesian Statistics}
+* \href{https://observablehq.com/@observablehq/data-wrangling-translations}{Data wrangling essentials}
+* \href{https://towardsdatascience.com/a-comprehensive-guide-to-the-grammar-of-graphics-for-effective-visualization-of-multi-dimensional-1f92b4ed4149}{Guide to the Grammar of Graphics}
+* \href {https://www.usgs.gov/faqs/what-geographic-information-system-gis}{Geographic Information System}(GIS)
+* \href{https://github.com/mitzimorris/ljubljiana_lecture/blob/main/data_prep_spatial_maps.ipynb}{Map-making with Plotnine}
+
+\textit{Questions?}
